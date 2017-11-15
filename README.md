@@ -1,10 +1,11 @@
 #ShutterChance
 #環境設定
+-python版opencvのインストール 'sudo apt-get install python-opencv'
 -pythonのWebフレームワークTornadoをインストール
  -Tornadoのドキュメント 'http://www.tornadoweb.org/en/stable/'
  -インストールコマンド 'sudo pip install tornado'
 -pygameのインストール　'sudo apt-get install python-pygame' 
--ダウンロート 'git clone -b player https://github.com/igakilab/oreo'
+-実行ファイルダウンロート 'git clone -b player https://github.com/igakilab/oreo'
 
 #実行方法
 -cloneしたディレクトリに移動後 'sudo python Main.py'
