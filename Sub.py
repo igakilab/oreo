@@ -9,7 +9,6 @@ import pygame
 import easygopigo3
 import math
 
-import subprocess
 import picamera
 import os
 from time import sleep
