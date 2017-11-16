@@ -1,1 +1,4 @@
 # oreo
+このbranchはGoPiGoの環境構築および環境テストを行うためのbranchである。
+
+forward_2seconds.pyはpython fileであり、2秒間GoPiGoを前進させ、その後停止するプログラムである。
