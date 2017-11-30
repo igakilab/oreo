@@ -1,4 +1,6 @@
 # oreo
-このbranchはGoPiGoの環境構築および環境テストを行うためのbranchである。
+このbranchはGoPiGoの環境構築および基本的な動作のサンプルプログラムのbranchである。
 
 forward_2seconds.pyはpython fileであり、2秒間GoPiGoを前進させ、その後停止するプログラムである。
+
+socket_print.pyはpython fileであり、vision systemとsocket通信を行い、受信した座標情報を標準出力するプログラムである。
