@@ -226,7 +226,7 @@ def control():
 
             e = pygame.event.get() #入力されているイベントを取得,joystick.get～を呼び出す前に必ずこのメソッドを呼び出す
 
-            yAxis = -1 * joystick.get_axis(1) #y軸方向には前が-1,後ろが1担っているので反転
+            yAxis = -1 * joystick.get_axis(1) #y軸方向には前が-1,後ろが1になっているので反転
             xAxis = joystick.get_axis(0) #左が1,右が-1
             #pygame.event.clear()
             # print("shutter"+str(shutte))
