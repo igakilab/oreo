@@ -1,5 +1,5 @@
 
-#エンターキーなしでキーボードから一文字入力をとる
+
 class Getch:
     def __init__(self):
         import tty, sys
