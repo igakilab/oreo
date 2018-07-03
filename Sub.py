@@ -96,6 +96,7 @@ WIDTH = 320 #ストリーミングする映像の横幅
 HEIGHT = 240 #ストリーミングする映像の高さ
 FPS = 30  #ストリーミングする映像のfps
 
+#カメラのストリーミングが始まるとロックされ、ループ中にリリース・ロックが行われる
 
 #カメラの初期化
 def piCamera():
@@ -126,6 +127,12 @@ def capture():
     image = cv2.imdecode(data,1) #画像データに変換
     scoreAndOutput(image)
 
+#ストリーミングを開始する関数
+def main():
+    global camera
+    camera = piCamera()
+
+    
 #gopigoを操作する関数
 def control():
     SPEED_MAX = 470  #最大速度
@@ -144,7 +151,7 @@ def control():
     pi.set_motor_limits(pi.MOTOR_LEFT + pi.MOTOR_RIGHT, 1000) #モーターリミット設定
     print(joystick.get_name())
     time_shutter = None #次の撮影可能時間
-    global index,saiten,isControl,wait
+    global index,saiten,isControl
     while 1:
 
         try:
@@ -164,7 +171,7 @@ def control():
 
             isButtonPressed = False
             for i in e: #取得したイベントの中にボタン押下があるか
-                if i.type == JOYBUTTONDOWN:
+                if i.type == pygame.JOYBUTTONDOWN:
                     isButtonPressed = True
 
             if time_shutter == None: #一秒経過しているか
@@ -256,3 +263,7 @@ def sub():
     control_thread =threading.Thread(target=control) #操作用スレッド開始
     control_thread.setDaemon(True) #親スレッドが消えた時に自動で気に消えるように設定
     control_thread.start()
+
+    main_thread =threading.Thread(target=main) #ストリーミングスレッド開始
+    main_thread.setDaemon(True) #親スレッドが消えた時に自動で気に消えるように設定
+    main_thread.start()
