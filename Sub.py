@@ -95,63 +95,7 @@ def scoreAndOutput(frame):
 WIDTH = 320 #ストリーミングする映像の横幅
 HEIGHT = 240 #ストリーミングする映像の高さ
 FPS = 30  #ストリーミングする映像のfps
-wait = threading.Lock()  #カメラに対するロックオブジェクト
 
-#カメラのストリーミングが始まるとロックされ、ループ中にリリース・ロックが行われる
-
-#httpリクエストを受け付けるクラス (tornado)
-class HttpHandler(tornado.web.RequestHandler):
-    def initialize(self):
-            pass
-
-    def get(self):
-        self.render("./index.html")  #ストリーミングで表示するページを指定
-
-#ウェブソケットを受け付けるクラス (tornado)
-class WSHandler(tornado.websocket.WebSocketHandler):
-    def initialize(self, camera):
-        print("init")
-        self.camera = camera
-        self.state = True #接続中かどうか
-        self.stream = io.BytesIO()
-
-    #接続されたときに呼び出される
-    def open(self):
-        print(self.request.remote_ip, ": connection opened")
-        from tornado.ioloop import PeriodicCallback
-        self.callback = PeriodicCallback(self.call,0.1)   #一定間隔(0.1ミリ秒)ごとに呼び出されるようにcallメソッドを登録
-        self.callback.start()
-
-    def call(self):
-        global wait
-        count=0 #送信した回数
-        if not wait.acquire(False) : #ロック獲得、ロック中であればreturn 引数はブロックするかどうか
-            return
-        self.camera.resolution = (WIDTH, HEIGHT) #ストリーミング用解像度に変更
-
-        #picameraのストリーミング
-        #参考:4.9. Rapid capture and streaming [ http://picamera.readthedocs.io/en/release-1.13/recipes2.html ]
-        for f in self.camera.capture_continuous(self.stream, "jpeg", use_video_port=True):
-            self.stream.seek(0)
-            #print("send")
-            buff = self.stream.read() #buffに現在の画像を読み取り
-            self.write_message(buff,binary=True) #ウェブソケットに書き込み
-            self.stream.seek(0)
-            self.stream.truncate()
-            if not self.state:
-                break
-            wait.release() #ロック解放
-            count=count+1
-            
-            if count > 100: #100回送信したらメソッドを抜ける、
-                break       #抜けない場合、永遠にストリーミングのほうが優先されカメラのキャプチャーが実行されない
-            if not wait.acquire(False): #ロック獲得
-                break
-
-    def on_close(self):
-        self.state = False     
-        self.close()     
-        print(self.request.remote_ip, ": connection closed")
 
 #カメラの初期化
 def piCamera():
@@ -168,36 +112,20 @@ global camera
 
 #カメラ撮影後 scoreAndOutputに画像を渡す
 def capture():
-    global end,wait
+    global end
     print("acquire")
     imgStream=io.BytesIO()
-    wait.acquire() #ロック獲得
-    
+
     camera.resolution = (1920, 1080)#画像の解像度指定
 
     camera.start_preview()#カメラ準備
    
     camera.capture(imgStream,format='jpeg')#撮影
-    wait.release()#ロック解放
-    
+
     data = np.fromstring(imgStream.getvalue(),dtype=np.uint8)#numpyの配列に変換
     image = cv2.imdecode(data,1) #画像データに変換
     scoreAndOutput(image)
 
-#ストリーミングを開始する関数
-def main():
-    global camera
-    camera = piCamera()
-    #
-    app = tornado.web.Application([
-        (r"/", HttpHandler),     #最初のアクセスを受け付けるhttpハンドラー登録
-        (r"/camera", WSHandler, dict(camera=camera)),   #WebSocket接続を受け付けるハンドラー登録,第三引数は 'initialize'関数に渡される
-    ])
-    http_server = tornado.httpserver.HTTPServer(app) #サーバー構築
-    http_server.listen(8080) #受付
-    print("listen")
-    tornado.ioloop.IOLoop.instance().start() #ウェブソケット開始
-    
 #gopigoを操作する関数
 def control():
     SPEED_MAX = 470  #最大速度
@@ -328,7 +256,3 @@ def sub():
     control_thread =threading.Thread(target=control) #操作用スレッド開始
     control_thread.setDaemon(True) #親スレッドが消えた時に自動で気に消えるように設定
     control_thread.start()
-
-    main_thread =threading.Thread(target=main) #ストリーミングスレッド開始
-    main_thread.setDaemon(True) #親スレッドが消えた時に自動で気に消えるように設定
-    main_thread.start()
